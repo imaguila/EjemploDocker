@@ -1,33 +1,16 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: campdb
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5432:5432"
-
-  backend:
-    build: ./backend
+  mi-app-biblioteca:
+    # Construye usando el Dockerfile de la carpeta actual
+    build: .
+    # Mapea el puerto 5000 de tu PC al 5000 del contenedor
     ports:
       - "5000:5000"
-    environment:
-      DATABASE_URL: postgresql://user:password@db:5432/campdb
-    depends_on:
-      - db
-
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    stdin_open: true
-    tty: true
-    environment:
-      - WDS_SOCKET_PORT=0
-    depends_on:
-      - backend
+    # ESTO ES NUEVO: Volúmenes (Persistencia)
+    # Conecta tu carpeta de Windows con la carpeta de la app dentro de Docker.
+    # Así, el archivo biblioteca.db se guardará en tu ordenador, no solo en Docker.
+    volumes:
+      - .:/app
+    # Si la app falla, intenta reiniciarla
+    restart: always
