@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión Biblioteca</title>
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@1.*/css/pico.min.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        .rojo { color: red; } .verde { color: green; }
+        .card { padding: 20px; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 8px;}
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>📚 Biblioteca Escolar</h1>
+
+        <div class="grid">
+            <div>
+                <h3>Nuevo Libro</h3>
+                <input v-model="nuevoLibro.titulo" placeholder="Título del libro">
+                <input v-model.number="nuevoLibro.total" type="number" placeholder="Cantidad Total">
+                <button @click="crearLibro">Guardar Libro</button>
+
+                <hr>
+                <h3>Catálogo</h3>
+                <div v-for="libro in libros" :key="libro.id" class="card">
+                    <strong>{{ libro.titulo }}</strong><br>
+                    Disponibles: 
+                    <span :class="libro.total - libro.prestados > 0 ? 'verde' : 'rojo'">
+                        {{ libro.total - libro.prestados }} / {{ libro.total }}
+                    </span>
+                    
+                    <div v-if="libro.total - libro.prestados > 0" style="margin-top:10px;">
+                        <input v-model="prestamoTemp[libro.id]" placeholder="Nombre Alumno" style="margin-bottom:5px;">
+                        <button class="secondary outline" @click="prestar(libro.id)">Prestar</button>
+                    </div>
+                    <div v-else>
+                        <small class="rojo">Sin stock</small>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3>Préstamos Activos</h3>
+                <article v-if="prestamos.length === 0">No hay préstamos activos.</article>
+                
+                <div v-for="p in prestamos" :key="p.id" class="card">
+                    <div class="grid">
+                        <div>
+                            <strong>Alumno:</strong> {{ p.alumno }} <br>
+                            <small>Libro ID: {{ p.libro_id }}</small>
+                        </div>
+                        <button class="contrast" @click="devolver(p.id)">Devolver</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    libros: [],
+                    prestamos: [],
+                    nuevoLibro: { titulo: '', total: 1 },
+                    prestamoTemp: {} // Objeto para guardar el nombre del alumno por cada libro
+                }
+            },
+            mounted() {
+                this.cargarTodo();
+            },
+            methods: {
+                async cargarTodo() {
+                    const resL = await fetch('/api/libros');
+                    this.libros = await resL.json();
+                    
+                    const resP = await fetch('/api/prestamos');
+                    this.prestamos = await resP.json();
+                },
+                async crearLibro() {
+                    await fetch('/api/libros', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify(this.nuevoLibro)
+                    });
+                    this.nuevoLibro.titulo = '';
+                    this.cargarTodo();
+                },
+                async prestar(libroId) {
+                    const alumno = this.prestamoTemp[libroId];
+                    if (!alumno) return alert("Escribe el nombre del alumno");
+
+                    const res = await fetch('/api/prestar', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ libro_id: libroId, alumno: alumno })
+                    });
+
+                    if (res.ok) {
+                        this.prestamoTemp[libroId] = ''; // Limpiar input
+                        this.cargarTodo();
+                    } else {
+                        const error = await res.json();
+                        alert(error.detail);
+                    }
+                },
+                async devolver(prestamoId) {
+                    if(!confirm("¿Confirmar devolución?")) return;
+                    await fetch(`/api/devolver/${prestamoId}`, { method: 'DELETE' });
+                    this.cargarTodo();
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>

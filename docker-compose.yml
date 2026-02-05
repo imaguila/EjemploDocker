@@ -1,16 +1,12 @@
-version: '3.8'
-
 services:
-  mi-app-biblioteca:
-    # Construye usando el Dockerfile de la carpeta actual
-    build: .
-    # Mapea el puerto 5000 de tu PC al 5000 del contenedor
-    ports:
-      - "5000:5000"
-    # ESTO ES NUEVO: Volúmenes (Persistencia)
-    # Conecta tu carpeta de Windows con la carpeta de la app dentro de Docker.
-    # Así, el archivo biblioteca.db se guardará en tu ordenador, no solo en Docker.
+  backend:
+    build: ./backend
     volumes:
-      - .:/app
-    # Si la app falla, intenta reiniciarla
-    restart: always
+      - .:/workspace:cached # Sincroniza el código del Codespace con el contenedor
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
