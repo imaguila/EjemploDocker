@@ -1,8 +1,11 @@
 services:
   backend:
     build: ./backend
+    # Esto mantiene el contenedor vivo aunque el proceso de Python falle
+    stdin_open: true
+    tty: true 
     volumes:
-      - .:/workspace:cached # Sincroniza el código del Codespace con el contenedor
+      - ..:/workspaces/EjemploDocker:cached
     ports:
       - "8000:8000"
 

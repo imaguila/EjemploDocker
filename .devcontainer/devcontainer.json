@@ -1,9 +1,12 @@
 {
   "name": "Mi Fullstack Stack",
-  "dockerComposeFile": ["../docker-compose.yml"],
-  "service": "backend", // El servicio principal donde se abrirá la terminal
-  "workspaceFolder": "/workspace", // Ruta dentro del contenedor
-  "forwardPorts": [80, 8000], // Abre los puertos del frontend y backend
-  "postCreateCommand": "echo '¡Entorno listo!'" 
-  
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "backend",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "shutdownAction": "none",
+  "forwardPorts": [80, 8000],
+  "portsAttributes": {
+    "80": { "label": "Frontend", "onAutoForward": "openBrowser" },
+    "8000": { "label": "Backend", "visibility": "public" }
+  }
 }
