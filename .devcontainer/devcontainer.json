@@ -5,4 +5,5 @@
   "workspaceFolder": "/workspace", // Ruta dentro del contenedor
   "forwardPorts": [80, 8000], // Abre los puertos del frontend y backend
   "postCreateCommand": "echo '¡Entorno listo!'" 
+  
 }
